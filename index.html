@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H2O Tracker V4 - แอปบันทึกการดื่มน้ำ</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        body {
+            background-color: #f0f4f8;
+            color: #2d3748;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .app-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 480px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2563eb;
+            margin-top: 0;
+        }
+        .setup-section, .main-section {
+            display: block;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+        }
+        button {
+            width: 100%;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        .welcome-text {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .stat-box {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .stat-val {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e40af;
+            margin-top: 5px;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+        }
+        .progress-container {
+            background: #e2e8f0;
+            border-radius: 20px;
+            height: 25px;
+            width: 100%;
+            margin-bottom: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+        .progress-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            top: 3px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        .quick-add {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .custom-add {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .custom-add input {
+            flex: 2;
+        }
+        .custom-add button {
+            flex: 1;
+            padding: 10px;
+        }
+        .btn-water {
+            background-color: #eff6ff;
+            color: #2563eb;
+            border: 2px solid #bfdbfe;
+        }
+        .btn-water:hover {
+            background-color: #dbeafe;
+        }
+        .timer-alert {
+            background-color: #fffbeb;
+            border: 1px solid #fef3c7;
+            color: #b45309;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .btn-reset {
+            background-color: #ef4444;
+            margin-top: 10px;
+        }
+        .btn-reset:hover {
+            background-color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div id="setup-section" class="setup-section">
+        <h1>💧 ตั้งค่าการดื่มน้ำ</h1>
+        <p style="text-align:center; color:#64748b; margin-bottom: 20px;">ระบุข้อมูลเพื่อคำนวณเป้าหมายที่เหมาะสม</p>
+        
+        <div class="form-group">
+            <label for="username">ชื่อของคุณ</label>
+            <input type="text" id="username" placeholder="เช่น มิน" value="">
+        </div>
+        <div class="form-group">
+            <label for="weight">น้ำหนักตัว (กิโลกรัม)</label>
+            <input type="number" id="weight" placeholder="เช่น 60" value=" ">
+        </div>
+        <div class="form-group">
+            <label for="sleep-start">เวลานอน (ระบบจะไม่เตือนหลังเวลานี้)</label>
+            <input type="time" id="sleep-start" value="22:00">
+        </div>
+        <div class="form-group">
+            <label for="sleep-end">เวลาตื่นนอน (เริ่มเตือนหลังเวลานี้)</label>
+            <input type="time" id="sleep-end" value="06:00">
+        </div>
+        <div class="form-group">
+            <label for="interval-time">ความถี่ในการแจ้งเตือน</label>
+            <select id="interval-time">
+                <option value="60">เตือนทุกๆ 1 ชั่วโมง (สำหรับคนจิบน้ำบ่อย/ออกกำลังกาย)</option>
+                <option value="120" selected>เตือนทุกๆ 2 ชั่วโมง (กำลังดี - แนะนำสำหรับคนทั่วไป)</option>
+                <option value="180">เตือนทุกๆ 3 ชั่วโมง (สำหรับคนไม่สะดวกจิบบ่อย)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="alert-type">รูปแบบการแจ้งเตือน</label>
+            <select id="alert-type">
+                <option value="sound">🔊 มีเสียงเอฟเฟกต์เทน้ำ (และแจ้งเตือนบนจอ)</option>
+                <option value="silent">🔕 แจ้งเตือนข้อความเด้งบนจอแบบไม่มีเสียง</option>
+            </select>
+        </div>
+        <button onclick="startApp()">เริ่มบันทึกข้อมูล</button>
+    </div>
+
+    <div id="main-section" class="main-section hidden">
+        <div class="welcome-text" id="welcome-message">สวัสดีคุณ!</div>
+        
+        <div id="timer-alert" class="timer-alert">
+            กำลังคำนวณเวลาดื่มน้ำล่าสุด...
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">เป้าหมายวันนี้</div>
+                <div class="stat-val" id="val-goal">0 cc</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">ดื่มไปแล้ว</div>
+                <div class="stat-val" id="val-drank">0 cc</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">เหลือที่ต้องดื่ม</div>
+                <div class="stat-val" id="val-remain">0 cc</div>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+            <div id="progress-text" class="progress-text">0%</div>
+        </div>
+
+        <h3 style="font-size: 14px; margin-bottom: 10px;">+ บันทึกตามปริมาณหยดน้ำ</h3>
+        <div class="quick-add">
+            <button class="btn-water" onclick="addWater(50)">💧 50 cc</button>
+            <button class="btn-water" onclick="addWater(100)">💧💧 100 cc</button>
+            <button class="btn-water" onclick="addWater(200)">💦 200 cc</button>
+            <button class="btn-water" onclick="addWater(250)">💦 💦 250 cc</button>
+        </div>
+
+        <div class="custom-add">
+            <input type="number" id="custom-amount" placeholder="หรือใส่ปริมาณเองที่นี่ (cc)" min="1">
+            <button onclick="addCustomWater()">+ เพิ่ม</button>
+        </div>
+
+        <button class="btn-reset" onclick="resetData()">ล้างข้อมูลรายวัน</button>
+        <button style="background-color: #64748b; margin-top: 10px;" onclick="backToSetup()">แก้ไขข้อมูลส่วนตัว / ตัวเตือนเวลา</button>
+    </div>
+</div>
+
+<script>
+    let config = { name: "", weight: 60, goal: 2000, sleepStart: "22:00", sleepEnd: "06:00", alertType: "sound", intervalMins: 120 };
+    let appState = { drank: 0, lastDrankTime: new Date(), lastNotifiedMins: 0 };
+
+    // เอฟเฟกต์เสียงเทน้ำ
+    function playWaterSound() {
+        if (config.alertType !== "sound") return;
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioContext();
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(450 + (i * 120), ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1300 + (i * 80), ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.15);
+                }, i * 90); 
+            }
+        } catch (e) {
+            console.log("เบราว์เซอร์บล็อกเสียง: ", e);
+        }
+    }
+
+    function startApp() {
+        config.name = document.getElementById('username').value || "คุณ";
+        config.weight = parseFloat(document.getElementById('weight').value) || 60;
+        config.sleepStart = document.getElementById('sleep-start').value;
+        config.sleepEnd = document.getElementById('sleep-end').value;
+        config.alertType = document.getElementById('alert-type').value;
+        config.intervalMins = parseInt(document.getElementById('interval-time').value) || 120;
+
+        config.goal = Math.round(config.weight * 2.2 * 15);
+
+        document.getElementById('setup-section').classList.add('hidden');
+        document.getElementById('main-section').classList.remove('hidden');
+
+        appState.lastDrankTime = new Date();
+        appState.lastNotifiedMins = 0;
+
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+
+        updateUI();
+    }
+
+    function addWater(amount) {
+        if (amount <= 0 || isNaN(amount)) return;
+        appState.drank += amount;
+        appState.lastDrankTime = new Date(); 
+        appState.lastNotifiedMins = 0; 
+        updateUI();
+    }
+
+    function addCustomWater() {
+        const input = document.getElementById('custom-amount');
+        const amount = parseInt(input.value);
+        if (amount > 0) {
+            addWater(amount);
+            input.value = ""; 
+        } else {
+            alert("กรุณาระบุตัวเลขปริมาณน้ำที่ถูกต้องครับ");
+        }
+    }
+
+    function resetData() {
+        if(confirm("คุณต้องการล้างสถิติของวันนี้เพื่อเริ่มวันใหม่ใช่ไหม?")) {
+            appState.drank = 0;
+            appState.lastDrankTime = new Date();
+            appState.lastNotifiedMins = 0;
+            updateUI();
+        }
+    }
+
+    function backToSetup() {
+        document.getElementById('main-section').classList.add('hidden');
+        document.getElementById('setup-section').classList.remove('hidden');
+    }
+
+    function updateUI() {
+        let remain = config.goal - appState.drank;
+        if (remain < 0) remain = 0;
+
+        let pct = Math.round((appState.drank / config.goal) * 100);
+        if (pct > 100) pct = 100;
+
+        document.getElementById('welcome-message').innerText = `สวัสดีคุณ ${config.name} 🕰️`;
+        document.getElementById('val-goal').innerText = `${config.goal} cc`;
+        document.getElementById('val-drank').innerText = `${appState.drank} cc`;
+        document.getElementById('val-remain').innerText = `${remain} cc`;
+
+        document.getElementById('progress-bar').style.width = `${pct}%`;
+        document.getElementById('progress-text').innerText = `${pct}%`;
+
+        updateTimerMessage();
+    }
+
+    function updateTimerMessage() {
+        let now = new Date();
+        let diffMs = now - appState.lastDrankTime;
+        let diffMins = Math.floor(diffMs / 1000 / 60);
+        let diffHours = Math.floor(diffMins / 60);
+        let displayMins = diffMins % 60;
+
+        let alertBox = document.getElementById('timer-alert');
+
+        if (isSleepingTime(now)) {
+            alertBox.style.backgroundColor = "#f1f5f9";
+            alertBox.style.color = "#475569";
+            alertBox.style.borderColor = "#cbd5e1";
+            alertBox.innerText = "💤 ตอนนี้อยู่ในเวลานอนของคุณ ระบบจะงดแจ้งเตือนชั่วคราว";
+            return;
+        }
+
+        alertBox.style.backgroundColor = "#fffbeb";
+        alertBox.style.color = "#b45309";
+        alertBox.style.borderColor = "#fef3c7";
+        alertBox.innerText = `⏳ ดื่มน้ำล่าสุดเมื่อ: ${diffHours} ชม. ${displayMins} นาทีที่แล้ว (ตั้งเตือนทุก ${config.intervalMins / 60} ชม.)`;
+
+        if (diffMins >= config.intervalMins) {
+            alertBox.style.backgroundColor = "#fef2f2";
+            alertBox.style.color = "#b91c1c";
+            alertBox.style.borderColor = "#fee2e2";
+            alertBox.innerText = `⚠️ ไม่ได้ดื่มน้ำมา ${diffHours} ชม. ${displayMins} นาทีแล้ว! (เกินเวลาที่ตั้งไว้ ${config.intervalMins / 60} ชม.)`;
+        }
+    }
+
+    function isSleepingTime(now) {
+        let currentStr = now.toTimeString().substring(0, 5);
+        let start = config.sleepStart;
+        let end = config.sleepEnd;
+        if (start <= end) {
+            return (currentStr >= start && currentStr <= end);
+        } else {
+            return (currentStr >= start || currentStr <= end);
+        }
+    }
+
+    setInterval(() => {
+        let now = new Date();
+        updateTimerMessage();
+
+        let diffMins = Math.floor((now - appState.lastDrankTime) / 1000 / 60);
+        
+        if (diffMins >= config.intervalMins && !isSleepingTime(now)) {
+            if (diffMins % config.intervalMins === 0 && appState.lastNotifiedMins !== diffMins) {
+                appState.lastNotifiedMins = diffMins;
+
+                if (config.alertType === "sound") {
+                    playWaterSound();
+                }
+
+                if (Notification.permission === "granted") {
+                    let options = {
+                        body: `คุณไม่ได้ดื่มน้ำมาครบ ${diffMins / 60} ชั่วโมงแล้วนะ แวะจิบน้ำสักนิดครับ`,
+                        tag: 'water-reminder',
+                        renotify: true
+                    };
+                    if (config.alertType === "silent") {
+                        options.silent = true;
+                    }
+                    new Notification("💧 อย่าลืมดื่มน้ำนะ!", options);
+                }
+            }
+        }
+    }, 10000);
+</script>
+
+</body>
+</html>
